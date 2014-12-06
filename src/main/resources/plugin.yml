@@ -1,0 +1,8 @@
+name: Particles
+main: org.freehat.particles.ParticlesPlugin
+version: 1.0
+description: >
+             Particle game
+commands:
+  part:
+    description: particle game command
