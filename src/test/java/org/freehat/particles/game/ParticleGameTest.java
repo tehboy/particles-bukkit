@@ -46,7 +46,6 @@ public class ParticleGameTest {
 				.player("bar").particleCount(3).build();
 		GameRound roundInfo = game.getRoundInfo();
 		roundInfo.getParticles();
-
 		assertEquals(SentenceResult.INVALID_SENTENCE,
 				game.setSentence("foo", "了解C、仕事B、こそあど言葉、分からないですけど。"));
 		assertEquals(SentenceResult.INVALID_SENTENCE,
@@ -54,6 +53,8 @@ public class ParticleGameTest {
 		assertEquals(SentenceResult.WRONGUSER,
 				game.setSentence("bar", "了解C、仕事B、こそあど言葉A、分からないですけど。"));
 		assertEquals(SentenceResult.SENTENCE_SET,
+				game.setSentence("foo", "了解C、仕事B、こそあど言葉A、分からないですけど。"));
+		assertEquals(SentenceResult.WRONGTIME,
 				game.setSentence("foo", "了解C、仕事B、こそあど言葉A、分からないですけど。"));
 	}
 
@@ -73,11 +74,6 @@ public class ParticleGameTest {
 		Collections.reverse(guess);
 		result = game.guess("bar", guess);
 		assertEquals(1, result.getCorrect());
-		assertEquals(2, result.getIncorrect());
-		assertEquals(false, result.isSuccess());
-		Collections.reverse(guess);
-		result = game.guess("bar", guess);
-		assertEquals(0, result.getCorrect());
 		assertEquals(2, result.getIncorrect());
 		assertEquals(false, result.isSuccess());
 		guess = new ArrayList<>();

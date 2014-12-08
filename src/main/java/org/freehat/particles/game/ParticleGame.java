@@ -58,6 +58,15 @@ public class ParticleGame {
 		round = new GameRound(nextPlayer, Particle.randomParticles(count));
 	}
 
+	public GameRound pass(String user) {
+		if (!round.getPlayer().equals(user)) {
+			return null;
+		}
+		round = new GameRound(round.getPlayer(), Particle.randomParticles(round
+				.getParticles().size()));
+		return round;
+	}
+
 	public SentenceResult setSentence(String user, String sentence) {
 		if (!round.getPlayer().equals(user)) {
 			return SentenceResult.WRONGUSER;
@@ -117,6 +126,10 @@ public class ParticleGame {
 
 	public GameRound getRoundInfo() {
 		return round;
+	}
+
+	public void addPlayer(String player) {
+		playerIds.add(player);
 	}
 
 }
