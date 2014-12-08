@@ -9,8 +9,12 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.freehat.particles.game.GameRound;
@@ -23,13 +27,14 @@ public class GameSessions {
 
 	private final List<GameSession> sessions;
 	private final Map<UUID, GameSession> invites;
-	private final ScoreboardManager manager = Bukkit.getScoreboardManager();
+	private final ScoreboardManager manager;
 	private final ParticlesPlugin plugin;
 
 	public GameSessions(ParticlesPlugin plugin) {
 		sessions = new ArrayList<>();
 		invites = new HashMap<UUID, GameSession>();
 		this.plugin = plugin;
+		manager = Bukkit.getScoreboardManager();
 	}
 
 	public GameSession quit(UUID pid) {
@@ -68,22 +73,32 @@ public class GameSessions {
 	}
 
 	public class GameSession {
+		private static final String SCORE = "Points";
 		private final Set<UUID> players = new HashSet<>();
 		private final Scoreboard board = manager.getNewScoreboard();
+		private final Objective objective = board.registerNewObjective(
+				hashCode() + "", "dummy");
 		private ParticleGame game;
 		private boolean gameOn;
 		private int score;
 		private int gameLength = 20 * 60 * 5;
 
-		public void pass(Player player) {
-			game.pass(player.getUniqueId().toString());
-			Util.send(player, "New particles: "
+		GameSession() {
+			objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+			objective.setDisplayName(ChatColor.GOLD + "5 Minute Round");
+			Score s = objective.getScore(SCORE);
+			s.setScore(score);
+		}
+
+		public void pass(UUID pid) {
+			game.pass(pid.toString());
+			Util.send(plugin.getPlayer(pid), "New particles: "
 					+ game.getRoundInfo().getParticles());
 		}
 
-		public void setSentence(Player player, String sentence) {
-			SentenceResult result = game.setSentence(player.getUniqueId()
-					.toString(), sentence);
+		public void setSentence(UUID pid, String sentence) {
+			SentenceResult result = game.setSentence(pid.toString(), sentence);
+			Player player = plugin.getPlayer(pid);
 			switch (result) {
 			case INVALID_SENTENCE:
 				Util.send(
@@ -99,22 +114,28 @@ public class GameSessions {
 				break;
 			case SENTENCE_SET:
 				Util.send(player, "Sentence set");
+				sendMessage("Sentence to guess: "
+						+ game.getRoundInfo().getText());
 				break;
 			}
 		}
 
-		public void guess(Player player, List<String> particles) {
-			GuessResult guess = game.guess(player.getUniqueId().toString(),
-					particles);
+		public void guess(UUID pid, List<String> particles) {
+			GuessResult guess = game.guess(pid.toString(), particles);
 			if (guess == null) {
-				Util.send(player, "You can't guess your own sentence.");
+				Util.send(plugin.getPlayer(pid),
+						"You can't guess your own sentence.");
+				return;
 			}
 			if (guess.isSuccess()) {
-				sendMessage(String.format("%s was correct."));
+				score++;
+				Score s = objective.getScore(SCORE);
+				s.setScore(score);
+				sendMessage(String.format("%s was correct.", particles));
 				notifySentenceSetter();
 			} else {
 				Util.send(
-						player,
+						plugin.getPlayer(pid),
 						String.format("%d correct, %d incorrect.",
 								guess.getCorrect(), guess.getIncorrect()));
 			}
@@ -122,8 +143,7 @@ public class GameSessions {
 
 		private void notifySentenceSetter() {
 			GameRound info = game.getRoundInfo();
-			Player nextGuesser = Bukkit.getPlayer(UUID.fromString(info
-					.getPlayer()));
+			Player nextGuesser = plugin.getPlayer(info.getPlayer());
 			Util.send(
 					nextGuesser,
 					"It's your turn to name a sentence, set it by calling /part sentence <sentence>.  For example, if your particles are A: に and B: が you could type /part sentence 私A百円Bある");
@@ -137,6 +157,7 @@ public class GameSessions {
 				b.append("\n");
 				letter++;
 			}
+			Util.send(nextGuesser, b.toString());
 		}
 
 		@SuppressWarnings("deprecation")
@@ -153,17 +174,24 @@ public class GameSessions {
 		}
 
 		public void quit(UUID pid) {
-			Bukkit.getPlayer(pid).setScoreboard(manager.getMainScoreboard());
-			players.remove(pid);
-			if (players.size() < 2) {
+			if (players.size() <= 2) {
 				endGame();
+			} else {
+				players.remove(pid);
+				Bukkit.getPlayer(pid)
+						.setScoreboard(manager.getMainScoreboard());
 			}
 		}
 
 		private void endGame() {
-			gameOn = true;
-			sendMessage("Game ended");
+			gameOn = false;
+			sendMessage(String.format("Game over. Final Score: %d points.",
+					score));
 			sessions.remove(this);
+			for (UUID pid : players) {
+				plugin.getPlayer(pid)
+						.setScoreboard(manager.getMainScoreboard());
+			}
 		}
 
 		public boolean hasPlayer(UUID pid) {
@@ -174,6 +202,7 @@ public class GameSessions {
 			players.add(name);
 			if (gameOn) {
 				game.addPlayer(name.toString());
+				plugin.getPlayer(name).setScoreboard(board);
 			} else {
 				if (players.size() > 1) {
 					sendMessage("Game starting in 5 seconds.");
@@ -184,7 +213,7 @@ public class GameSessions {
 
 		private void sendMessage(String message) {
 			for (UUID pid : players) {
-				Util.send(Bukkit.getPlayer(pid), message);
+				Util.send(plugin.getPlayer(pid), message);
 			}
 		}
 
@@ -193,12 +222,13 @@ public class GameSessions {
 			@Override
 			public void run() {
 				new EndGame().runTaskLater(plugin, gameLength);
-				new TimeWarning(60).runTaskLater(plugin, 20 * 60);
-				new TimeWarning(30).runTaskLater(plugin, 20 * 30);
+				new TimeWarning(60).runTaskLater(plugin, gameLength - 20 * 60);
+				new TimeWarning(30).runTaskLater(plugin, gameLength - 20 * 30);
 				ParticleGame.Builder builder = new ParticleGame.Builder();
 				builder.particleCount(1);
 				for (UUID player : players) {
 					builder.player(player.toString());
+					plugin.getPlayer(player).setScoreboard(board);
 				}
 				game = builder.build();
 				gameOn = true;
@@ -226,10 +256,9 @@ public class GameSessions {
 
 			@Override
 			public void run() {
-				if (!gameOn) {
+				if (gameOn) {
 					endGame();
 				}
-
 			}
 
 		}

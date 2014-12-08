@@ -86,7 +86,11 @@ public class ParticleGame {
 			partLoc.put(indexOf, ps.get(i));
 		}
 		round.setParticles(new ArrayList<>(partLoc.values()));
-		round.setText(sentence);
+		StringBuilder b = new StringBuilder(sentence);
+		for (int loc : partLoc.descendingKeySet()) {
+			b.replace(loc, loc + 1, "XX");
+		}
+		round.setText(b.toString());
 		round.setState(RoundState.RUNNING);
 		return SentenceResult.SENTENCE_SET;
 	}

@@ -10,7 +10,9 @@ import java.util.Map;
 public enum Particle {
 	HA("は", "ha"), GA("が", "ga"), DE("で", "de"), NI("に", "ni"), KARA("から",
 			"kara"), NO("の", "no"), MADE("まで", "made"), MO("も", "mo"), WO("を",
-			"wo"), HE("へ", "he");
+			"wo"), HE("へ", "he"), KA("か", "ka"), TO("と", "to"), YA("や", "ya"), NADO(
+			"など", "nado"), YORI("より", "yori"), DEMO("でも", "demo"), DAKE("だけ",
+			"dake");
 
 	private static final Map<String, Particle> PARTICLES = new HashMap<>();
 	static {

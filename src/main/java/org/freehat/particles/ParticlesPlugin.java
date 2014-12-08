@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -15,6 +16,21 @@ import org.freehat.particles.GameSessions.GameSession;
 public class ParticlesPlugin extends JavaPlugin {
 
 	public static final UUID AI = UUID.randomUUID();
+
+	private Player aiPlayer;
+
+	public Player getPlayer(String id) {
+		UUID pid = UUID.fromString(id);
+		return getPlayer(pid);
+	}
+
+	public Player getPlayer(UUID pid) {
+		if (AI.equals(pid)) {
+			return aiPlayer;
+		} else {
+			return Bukkit.getPlayer(pid);
+		}
+	}
 
 	public ParticlesPlugin() {
 
@@ -28,6 +44,8 @@ public class ParticlesPlugin extends JavaPlugin {
 		}
 		GameSession session = sessions.getSession(pid);
 		switch (args[0]) {
+		case "ai-reg":
+			aiPlayer = player;
 		case "accept":
 			if (session == null) {
 				session = sessions.accept(pid);
@@ -51,19 +69,19 @@ public class ParticlesPlugin extends JavaPlugin {
 			return;
 		case "pass":
 			if (session != null) {
-				session.pass(player);
+				session.pass(pid);
 			}
 			return;
 		case "sentence":
 			if (session != null) {
-				if (args.length > 2) {
+				if (args.length >= 2) {
 					StringBuilder b = new StringBuilder();
 					for (int i = 1; i < args.length; i++) {
 						b.append(args[i]);
 						b.append(" ");
 					}
 					String sentence = b.toString().trim();
-					session.setSentence(player, sentence);
+					session.setSentence(pid, sentence);
 				} else {
 					Util.send(player, "Must specify a sentence");
 				}
@@ -79,7 +97,7 @@ public class ParticlesPlugin extends JavaPlugin {
 					for (int i = 1; i < args.length; i++) {
 						particles.add(args[i]);
 					}
-					session.guess(player, particles);
+					session.guess(pid, particles);
 				} else {
 					Util.send(player, "You should probably guess something.");
 				}
