@@ -46,6 +46,7 @@ public class ParticlesPlugin extends JavaPlugin {
 		switch (args[0]) {
 		case "ai-reg":
 			aiPlayer = player;
+			return;
 		case "accept":
 			if (session == null) {
 				session = sessions.accept(pid);
@@ -104,6 +105,9 @@ public class ParticlesPlugin extends JavaPlugin {
 			} else {
 				Util.send(player, "You're not in a game.");
 			}
+			return;
+		case "scores":
+			sessions.listHighScores(pid);
 			return;
 		default:
 			Util.usage(player);

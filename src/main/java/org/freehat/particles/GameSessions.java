@@ -1,6 +1,7 @@
 package org.freehat.particles;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +26,8 @@ import org.freehat.particles.game.SentenceResult;
 
 public class GameSessions {
 
+	private final ArrayList<HighScore> highScores;
+
 	private final List<GameSession> sessions;
 	private final Map<UUID, GameSession> invites;
 	private final ScoreboardManager manager;
@@ -35,6 +38,7 @@ public class GameSessions {
 		invites = new HashMap<UUID, GameSession>();
 		this.plugin = plugin;
 		manager = Bukkit.getScoreboardManager();
+		highScores = new ArrayList<>();
 	}
 
 	public GameSession quit(UUID pid) {
@@ -72,10 +76,34 @@ public class GameSessions {
 		return null;
 	}
 
+	public void listHighScores(UUID pid) {
+		Player p = plugin.getPlayer(pid);
+		for (HighScore hs : highScores) {
+			Util.send(p, hs.name + ": " + hs.score);
+		}
+	}
+
+	static class HighScore implements Comparable<HighScore> {
+		final String name;
+		final int score;
+
+		HighScore(String name, int score) {
+			this.name = name;
+			this.score = score;
+		}
+
+		@Override
+		public int compareTo(HighScore o) {
+			return Integer.compare(o.score, score);
+		}
+
+	}
+
 	public class GameSession {
 		private static final String SCORE = "Points";
 		private final Set<UUID> players = new HashSet<>();
 		private final Scoreboard board = manager.getNewScoreboard();
+
 		private final Objective objective = board.registerNewObjective(
 				hashCode() + "", "dummy");
 		private ParticleGame game;
@@ -179,18 +207,32 @@ public class GameSessions {
 			} else {
 				players.remove(pid);
 				Bukkit.getPlayer(pid)
-						.setScoreboard(manager.getMainScoreboard());
+				.setScoreboard(manager.getMainScoreboard());
 			}
 		}
 
 		private void endGame() {
 			gameOn = false;
+
 			sendMessage(String.format("Game over. Final Score: %d points.",
 					score));
 			sessions.remove(this);
+			StringBuilder b = new StringBuilder();
 			for (UUID pid : players) {
-				plugin.getPlayer(pid)
-						.setScoreboard(manager.getMainScoreboard());
+				Player p = plugin.getPlayer(pid);
+				if (b.length() > 0) {
+					b.append(", ");
+				}
+				b.append(p.getName());
+				p.setScoreboard(manager.getMainScoreboard());
+			}
+			highScores.add(new HighScore(b.toString(), score));
+			Collections.sort(highScores);
+			if (highScores.size() == 6) {
+				highScores.remove(5);
+			}
+			for (UUID pid : players) {
+				listHighScores(pid);
 			}
 		}
 
