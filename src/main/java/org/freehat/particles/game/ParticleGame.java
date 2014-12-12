@@ -96,7 +96,8 @@ public class ParticleGame {
 	}
 
 	public GuessResult guess(String player, List<String> particles) {
-		if (player.equals(round.getPlayer())) {
+		if (player.equals(round.getPlayer())
+				|| round.getState() == RoundState.INITIAL) {
 			return null;
 		}
 		GuessResult r = new GuessResult();
@@ -105,12 +106,10 @@ public class ParticleGame {
 		int correct = 0, incorrect = 0;
 		for (int i = 0; i < particles.size() && i < cnt; i++) {
 			Particle guess = Particle.lookup(particles.get(i));
-			if (guess != null) {
-				if (guess.equals(roundParticles.get(i))) {
-					correct++;
-				} else {
-					incorrect++;
-				}
+			if (guess != null && guess.equals(roundParticles.get(i))) {
+				correct++;
+			} else {
+				incorrect++;
 			}
 		}
 		r.setCorrect(correct);
