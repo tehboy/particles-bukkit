@@ -31,13 +31,12 @@ public class ParticleGameTest {
 		assertEquals(RoundState.RUNNING, roundInfo.getState());
 		GuessResult guess = game.guess("bar", Arrays.asList(p.toString()));
 		assertEquals(true, guess.success);
+		assertEquals(0, game.getScore());
 		roundInfo = game.getRoundInfo();
 		assertEquals(RoundState.INITIAL, roundInfo.getState());
 		assertEquals("bar", roundInfo.getPlayer());
 		assertNull(roundInfo.getText());
 		assertEquals(2, roundInfo.getParticles().size());
-		assertEquals((int) game.getScores().get("foo"), 0);
-		assertEquals((int) game.getScores().get("bar"), 1);
 	}
 
 	@Test

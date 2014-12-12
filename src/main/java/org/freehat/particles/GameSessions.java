@@ -105,17 +105,23 @@ public class GameSessions {
 		private final Scoreboard board = manager.getNewScoreboard();
 
 		private final Objective objective = board.registerNewObjective(
-				hashCode() + "", "dummy");
+				hashCode() + "_score", "dummy");
 		private ParticleGame game;
 		private boolean gameOn;
-		private int score;
 		private int gameLength = 20 * 60 * 5;
 
 		GameSession() {
 			objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-			objective.setDisplayName(ChatColor.GOLD + "5 Minute Round");
+			setTimeString(gameLength / 20);
 			Score s = objective.getScore(SCORE);
-			s.setScore(score);
+			s.setScore(0);
+		}
+
+		void setTimeString(int timeLeft) {
+			ChatColor timeColor = timeLeft > 60 ? ChatColor.WHITE
+					: timeLeft > 30 ? ChatColor.YELLOW : ChatColor.RED;
+			objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
+					+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
 		}
 
 		public void pass(UUID pid) {
@@ -156,9 +162,8 @@ public class GameSessions {
 				return;
 			}
 			if (guess.isSuccess()) {
-				score++;
 				Score s = objective.getScore(SCORE);
-				s.setScore(score);
+				s.setScore(game.getScore());
 				sendMessage(String.format("%s was correct.", particles));
 				notifySentenceSetter();
 			} else {
@@ -207,7 +212,7 @@ public class GameSessions {
 			} else {
 				players.remove(pid);
 				Bukkit.getPlayer(pid)
-				.setScoreboard(manager.getMainScoreboard());
+						.setScoreboard(manager.getMainScoreboard());
 			}
 		}
 
@@ -215,18 +220,20 @@ public class GameSessions {
 			gameOn = false;
 
 			sendMessage(String.format("Game over. Final Score: %d points.",
-					score));
+					game.getScore()));
 			sessions.remove(this);
 			StringBuilder b = new StringBuilder();
 			for (UUID pid : players) {
 				Player p = plugin.getPlayer(pid);
-				if (b.length() > 0) {
-					b.append(", ");
+				if (p != null) {
+					if (b.length() > 0) {
+						b.append(", ");
+					}
+					b.append(p.getName());
+					p.setScoreboard(manager.getMainScoreboard());
 				}
-				b.append(p.getName());
-				p.setScoreboard(manager.getMainScoreboard());
 			}
-			highScores.add(new HighScore(b.toString(), score));
+			highScores.add(new HighScore(b.toString(), game.getScore()));
 			Collections.sort(highScores);
 			if (highScores.size() == 6) {
 				highScores.remove(5);
@@ -263,9 +270,6 @@ public class GameSessions {
 
 			@Override
 			public void run() {
-				new EndGame().runTaskLater(plugin, gameLength);
-				new TimeWarning(60).runTaskLater(plugin, gameLength - 20 * 60);
-				new TimeWarning(30).runTaskLater(plugin, gameLength - 20 * 30);
 				ParticleGame.Builder builder = new ParticleGame.Builder();
 				builder.particleCount(1);
 				for (UUID player : players) {
@@ -274,33 +278,39 @@ public class GameSessions {
 				}
 				game = builder.build();
 				gameOn = true;
+				new GameTimer(gameLength / 20).schedule();
 				notifySentenceSetter();
 			}
 
 		}
 
-		class TimeWarning extends BukkitRunnable {
+		class GameTimer extends BukkitRunnable {
+			private final int PERIOD = 100;
 
-			private final int seconds;
+			private int seconds;
 
-			TimeWarning(int seconds) {
+			GameTimer(int seconds) {
 				this.seconds = seconds;
 			}
 
 			@Override
 			public void run() {
-				sendMessage(seconds + " seconds left.");
+				seconds -= PERIOD / 20;
+				if (seconds == 60 || seconds == 30) {
+					sendMessage(seconds + " seconds left.");
+				}
+				setTimeString(seconds);
+				if (seconds <= 0) {
+					if (gameOn) {
+						endGame();
+					}
+					cancel();
+				} else {
+				}
 			}
 
-		}
-
-		class EndGame extends BukkitRunnable {
-
-			@Override
-			public void run() {
-				if (gameOn) {
-					endGame();
-				}
+			void schedule() {
+				runTaskTimer(plugin, 0, PERIOD);
 			}
 
 		}

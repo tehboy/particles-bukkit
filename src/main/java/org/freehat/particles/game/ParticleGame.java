@@ -1,10 +1,7 @@
 package org.freehat.particles.game;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -17,7 +14,7 @@ import java.util.TreeMap;
 public class ParticleGame {
 
 	private final List<String> playerIds;
-	private final Map<String, Integer> scores;
+	private int score;
 	private GameRound round;
 
 	public static class Builder {
@@ -41,10 +38,7 @@ public class ParticleGame {
 
 	private ParticleGame(List<String> players, int particleCount) {
 		playerIds = new ArrayList<>(players);
-		scores = new HashMap<>();
-		for (String player : playerIds) {
-			scores.put(player, 0);
-		}
+		score = 0;
 		round = new GameRound(playerIds.get(0),
 				Particle.randomParticles(particleCount));
 	}
@@ -54,8 +48,8 @@ public class ParticleGame {
 		String nextPlayer = playerIds
 				.get((playerIds.indexOf(round.getPlayer()) + 1)
 						% playerIds.size());
-		int count = round.getParticles().size() + 1;
-		round = new GameRound(nextPlayer, Particle.randomParticles(count));
+		round = new GameRound(nextPlayer,
+				Particle.randomParticles(getScore() + 1));
 	}
 
 	public GameRound pass(String user) {
@@ -117,14 +111,14 @@ public class ParticleGame {
 		final boolean success = incorrect == 0 && particles.size() == cnt;
 		r.setSuccess(success);
 		if (success) {
-			scores.put(player, scores.get(player) + 1);
+			score++;
 			setupNextRound();
 		}
 		return r;
 	}
 
-	public Map<String, Integer> getScores() {
-		return Collections.unmodifiableMap(scores);
+	public int getScore() {
+		return score / playerIds.size();
 	}
 
 	public GameRound getRoundInfo() {
