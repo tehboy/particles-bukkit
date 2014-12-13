@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -120,8 +121,8 @@ public class GameSessions {
 		void setTimeString(int timeLeft) {
 			ChatColor timeColor = timeLeft > 60 ? ChatColor.WHITE
 					: timeLeft > 30 ? ChatColor.YELLOW : ChatColor.RED;
-			objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
-					+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
+					objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
+							+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
 		}
 
 		public void pass(UUID pid) {
@@ -212,7 +213,7 @@ public class GameSessions {
 			} else {
 				players.remove(pid);
 				Bukkit.getPlayer(pid)
-						.setScoreboard(manager.getMainScoreboard());
+				.setScoreboard(manager.getMainScoreboard());
 			}
 		}
 
@@ -243,6 +244,10 @@ public class GameSessions {
 			}
 		}
 
+		public UUID getSentenceSetter() {
+			return UUID.fromString(game.getRoundInfo().getPlayer());
+		}
+
 		public boolean hasPlayer(UUID pid) {
 			return players.contains(pid);
 		}
@@ -251,7 +256,11 @@ public class GameSessions {
 			players.add(name);
 			if (gameOn) {
 				game.addPlayer(name.toString());
-				plugin.getPlayer(name).setScoreboard(board);
+				Player p = plugin.getPlayer(name);
+				p.setScoreboard(board);
+				p.setMetadata(ParticlesPlugin.KEY, new FixedMetadataValue(
+						plugin, "KEY"));
+
 			} else {
 				if (players.size() > 1) {
 					sendMessage("Game starting in 5 seconds.");
@@ -273,8 +282,11 @@ public class GameSessions {
 				ParticleGame.Builder builder = new ParticleGame.Builder();
 				builder.particleCount(1);
 				for (UUID player : players) {
+					Player p = plugin.getPlayer(player);
 					builder.player(player.toString());
-					plugin.getPlayer(player).setScoreboard(board);
+					p.setScoreboard(board);
+					p.setMetadata(ParticlesPlugin.KEY, new FixedMetadataValue(
+							plugin, "foo"));
 				}
 				game = builder.build();
 				gameOn = true;
@@ -305,7 +317,6 @@ public class GameSessions {
 						endGame();
 					}
 					cancel();
-				} else {
 				}
 			}
 

@@ -9,12 +9,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.freehat.particles.GameSessions.GameSession;
 
-public class ParticlesPlugin extends JavaPlugin {
+public class ParticlesPlugin extends JavaPlugin implements Listener {
 
+	public static final String KEY = "part";
 	public static final UUID AI = UUID.randomUUID();
 
 	private Player aiPlayer;
@@ -140,9 +144,35 @@ public class ParticlesPlugin extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		sessions = new GameSessions(this);
+		getServer().getPluginManager().registerEvents(this, this);
 		PluginDescriptionFile pdfFile = this.getDescription();
 		getLogger().info(pdfFile.getName() + " Enabled !");
 		getLogger().info("Current version: " + pdfFile.getVersion());
 	}
 
+	@EventHandler
+	public void onPlayerChat(AsyncPlayerChatEvent event) {
+		Player p = event.getPlayer();
+		if (p.hasMetadata(KEY)) {
+			UUID pid = p.getUniqueId();
+			String message = event.getMessage();
+			GameSession session = sessions.getSession(p.getUniqueId());
+			if (session != null) {
+				UUID currentSetter = session.getSentenceSetter();
+				if (!AI.equals(currentSetter) && currentSetter.equals(pid)) {
+					event.setCancelled(true);
+					if ("pass".equals(message)) {
+						session.pass(pid);
+					} else {
+						session.setSentence(pid, message);
+					}
+				} else {
+					session.guess(pid,
+							Arrays.asList(event.getMessage().split("\\s+")));
+				}
+			} else {
+				p.removeMetadata(KEY, this);
+			}
+		}
+	}
 }
