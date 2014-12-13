@@ -232,6 +232,7 @@ public class GameSessions {
 					}
 					b.append(p.getName());
 					p.setScoreboard(manager.getMainScoreboard());
+					p.removeMetadata(ParticlesPlugin.KEY, plugin);
 				}
 			}
 			highScores.add(new HighScore(b.toString(), game.getScore()));
@@ -321,6 +322,7 @@ public class GameSessions {
 			}
 
 			void schedule() {
+				setTimeString(seconds);
 				runTaskTimer(plugin, 0, PERIOD);
 			}
 

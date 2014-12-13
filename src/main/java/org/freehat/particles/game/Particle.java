@@ -6,13 +6,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static org.freehat.particles.game.ParticleLevel.*;
 
 public enum Particle {
-	HA("は", "ha"), GA("が", "ga"), DE("で", "de"), NI("に", "ni"), KARA("から",
-			"kara"), NO("の", "no"), MADE("まで", "made"), MO("も", "mo"), WO("を",
-			"wo"), HE("へ", "he"), KA("か", "ka"), TO("と", "to"), YA("や", "ya"), NADO(
-			"など", "nado"), YORI("より", "yori"), DEMO("でも", "demo"), DAKE("だけ",
-			"dake");
+	HA(BEGINNER, "は", "ha"), GA(BEGINNER, "が", "ga"), DE(BEGINNER, "で", "de"), NI(
+			BEGINNER, "に", "ni"), KARA(BEGINNER, "から", "kara"), NO(BEGINNER,
+					"の", "no"), MADE(BEGINNER, "まで", "made"), MO(BEGINNER, "も", "mo"), WO(
+							BEGINNER, "を", "wo"), HE(BEGINNER, "へ", "he"), KA(BEGINNER, "か",
+									"ka"), TO(BEGINNER, "と", "to"), YA(BEGINNER, "や", "ya"), NADO(
+											ADVANCED, "など", "nado"), YORI(ADVANCED, "より", "yori"), DEMO(
+													ADVANCED, "でも", "demo"), DAKE(ADVANCED, "だけ", "dake");
 
 	private static final Map<String, Particle> PARTICLES = new HashMap<>();
 	static {
@@ -23,9 +26,11 @@ public enum Particle {
 		}
 	}
 	private final String[] names;
+	private final ParticleLevel level;
 
-	Particle(String... matches) {
+	Particle(ParticleLevel level, String... matches) {
 		this.names = matches;
+		this.level = level;
 	}
 
 	public List<String> getPossibleNames() {
@@ -41,11 +46,15 @@ public enum Particle {
 		return PARTICLES.get(string);
 	}
 
-	public static List<Particle> randomParticles(int count) {
-		Particle[] values = values();
-		List<Particle> ps = new ArrayList<>(Arrays.asList(values()));
+	public static List<Particle> randomParticles(ParticleLevel level, int count) {
+		List<Particle> ps = new ArrayList<>();
+		for (Particle p : values()) {
+			if (p.level.ordinal() <= level.ordinal()) {
+				ps.add(p);
+			}
+		}
 		Collections.shuffle(ps);
-		return ps.subList(0, Math.min(values.length, count));
+		return ps.subList(0, Math.min(ps.size(), count));
 	}
 
 	public static void main(String... args) {

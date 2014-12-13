@@ -14,12 +14,14 @@ import java.util.TreeMap;
 public class ParticleGame {
 
 	private final List<String> playerIds;
+	private final ParticleLevel level;
 	private int score;
 	private GameRound round;
 
 	public static class Builder {
 		final List<String> players = new ArrayList<>();
 		int particleCount = 1;
+		ParticleLevel level = ParticleLevel.ALL;
 
 		public Builder particleCount(int particleCount) {
 			this.particleCount = particleCount;
@@ -31,16 +33,23 @@ public class ParticleGame {
 			return this;
 		}
 
+		public Builder level(ParticleLevel level) {
+			this.level = level;
+			return this;
+		}
+
 		public ParticleGame build() {
-			return new ParticleGame(players, particleCount);
+			return new ParticleGame(players, level, particleCount);
 		}
 	}
 
-	private ParticleGame(List<String> players, int particleCount) {
+	private ParticleGame(List<String> players, ParticleLevel level,
+			int particleCount) {
 		playerIds = new ArrayList<>(players);
+		this.level = level;
 		score = 0;
-		round = new GameRound(playerIds.get(0),
-				Particle.randomParticles(particleCount));
+		round = new GameRound(playerIds.get(0), Particle.randomParticles(level,
+				particleCount));
 	}
 
 	void setupNextRound() {
@@ -48,16 +57,16 @@ public class ParticleGame {
 		String nextPlayer = playerIds
 				.get((playerIds.indexOf(round.getPlayer()) + 1)
 						% playerIds.size());
-		round = new GameRound(nextPlayer,
-				Particle.randomParticles(getScore() + 1));
+		round = new GameRound(nextPlayer, Particle.randomParticles(level,
+				getScore() + 1));
 	}
 
 	public GameRound pass(String user) {
 		if (!round.getPlayer().equals(user)) {
 			return null;
 		}
-		round = new GameRound(round.getPlayer(), Particle.randomParticles(round
-				.getParticles().size()));
+		round = new GameRound(round.getPlayer(), Particle.randomParticles(
+				level, round.getParticles().size()));
 		return round;
 	}
 

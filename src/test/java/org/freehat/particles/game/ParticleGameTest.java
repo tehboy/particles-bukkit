@@ -36,7 +36,7 @@ public class ParticleGameTest {
 		assertEquals(RoundState.INITIAL, roundInfo.getState());
 		assertEquals("bar", roundInfo.getPlayer());
 		assertNull(roundInfo.getText());
-		assertEquals(2, roundInfo.getParticles().size());
+		assertEquals(1, roundInfo.getParticles().size());
 	}
 
 	@Test
