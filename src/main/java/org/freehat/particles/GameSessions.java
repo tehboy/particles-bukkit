@@ -20,6 +20,8 @@ import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.freehat.particles.game.GameRound;
+import org.freehat.particles.game.GameSentence;
+import org.freehat.particles.game.GameSentence.SentencePart;
 import org.freehat.particles.game.GuessResult;
 import org.freehat.particles.game.Particle;
 import org.freehat.particles.game.ParticleGame;
@@ -121,8 +123,8 @@ public class GameSessions {
 		void setTimeString(int timeLeft) {
 			ChatColor timeColor = timeLeft > 60 ? ChatColor.WHITE
 					: timeLeft > 30 ? ChatColor.YELLOW : ChatColor.RED;
-					objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
-							+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
+			objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
+					+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
 		}
 
 		public void pass(UUID pid) {
@@ -149,8 +151,26 @@ public class GameSessions {
 				break;
 			case SENTENCE_SET:
 				Util.send(player, "Sentence set");
-				sendMessage("Sentence to guess: "
-						+ game.getRoundInfo().getText());
+				GameSentence gs = game.getRoundInfo().getSentence();
+				StringBuilder b = new StringBuilder("Sentence to guess: \n");
+				List<Particle> particles = gs.getParticles();
+				ChatColor[] wheel = new ChatColor[] { ChatColor.RED,
+						ChatColor.GOLD, ChatColor.BLUE, ChatColor.GREEN,
+						ChatColor.YELLOW, ChatColor.DARK_AQUA,
+						ChatColor.DARK_PURPLE };
+				for (SentencePart sp : gs.getSentence()) {
+					if (sp.isParticle()) {
+						int idx = particles.indexOf(sp.particle());
+						b.append(wheel[idx % wheel.length] + "XX");
+					} else {
+						b.append(ChatColor.WHITE + sp.text());
+					}
+				}
+				b.append("\nName the particles: ");
+				for (int i = 0; i < particles.size(); i++) {
+					b.append(wheel[i % wheel.length] + "XX ");
+				}
+				sendMessage(b.toString());
 				break;
 			}
 		}
@@ -213,7 +233,7 @@ public class GameSessions {
 			} else {
 				players.remove(pid);
 				Bukkit.getPlayer(pid)
-				.setScoreboard(manager.getMainScoreboard());
+						.setScoreboard(manager.getMainScoreboard());
 			}
 		}
 

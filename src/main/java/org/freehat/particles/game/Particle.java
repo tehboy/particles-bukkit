@@ -11,16 +11,14 @@ import static org.freehat.particles.game.ParticleLevel.*;
 public enum Particle {
 	HA(BEGINNER, "は", "ha"), GA(BEGINNER, "が", "ga"), KA(BEGINNER, "か", "ka"), NO(
 			BEGINNER, "の", "no"), WO(BEGINNER, "を", "wo"), NI(BEGINNER, "に",
-			"ni"), DE(BEGINNER, "で", "de"), KARA_FROM(BEGINNER, "から (from)",
-			"から", "kara"), KARA_BEC(BEGINNER, "から (because)", "から", "kara"), MADE(
-			BEGINNER, "まで", "made"), TO_WITH(BEGINNER, "と (with)", "と", "to"), TO_AND(
-			BEGINNER, "と (and)", "と", "to"), MO(BEGINNER, "も (also)", "も", "mo"), NE(
-			BEGINNER, "ね", "ne"), YO(BEGINNER, "よ", "yo"), DAKE(ADVANCED, "だけ",
-			"dake"), SHIKA(ADVANCED, "しか", "shika"), KUNI(ADVANCED,
-			"～くに (adverbial form of adjectives)", "くに", ""), TARA(ADVANCED,
-			"～たら", "たら", "tara"), BA(ADVANCED, "～ば", "ば", "ba"), NARA(ADVANCED,
-			"～なら", "なら", "nara"), SHI(ADVANCED, "～し (listing reasons)", "し",
-			"shi");
+					"ni"), DE(BEGINNER, "で", "de"), KARA(BEGINNER, "から", "kara"), MADE(
+							BEGINNER, "まで", "made"), TO(BEGINNER, "と", "to"), MO(BEGINNER, "も",
+			"mo"), NE(BEGINNER, "ね", "ne"), YO(BEGINNER, "よ", "yo"), DAKE(
+			ADVANCED, "だけ", "dake"), SHIKA(ADVANCED, "しか", "shika"), KUNI(
+			ADVANCED, "～くに (adverbial form of adjectives)", "くに", ""), TARA(
+			ADVANCED, "～たら", "たら", "tara"), BA(ADVANCED, "～ば", "ば", "ba"), NARA(
+			ADVANCED, "～なら", "なら", "nara"), SHI(ADVANCED,
+			"～し (listing reasons)", "し", "shi");
 
 	private static final Map<String, Particle> PARTICLES = new HashMap<>();
 	static {
@@ -34,7 +32,7 @@ public enum Particle {
 	private final ParticleLevel level;
 
 	Particle(ParticleLevel level, String... matches) {
-		this.names = matches;
+		names = matches;
 		this.level = level;
 	}
 

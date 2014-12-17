@@ -1,9 +1,9 @@
 package org.freehat.particles.game;
 
 public class GuessResult {
-	boolean success;
-	int correct;
-	int incorrect;
+	private boolean success;
+	private int correct;
+	private int incorrect;
 
 	public boolean isSuccess() {
 		return success;

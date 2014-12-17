@@ -1,7 +1,6 @@
 package org.freehat.particles.game;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,12 +29,12 @@ public class ParticleGameTest {
 		game.setSentence("foo", "仕方Aない");
 		assertEquals(RoundState.RUNNING, roundInfo.getState());
 		GuessResult guess = game.guess("bar", Arrays.asList(p.toString()));
-		assertEquals(true, guess.success);
+		assertTrue(guess.isSuccess());
 		assertEquals(0, game.getScore());
 		roundInfo = game.getRoundInfo();
 		assertEquals(RoundState.INITIAL, roundInfo.getState());
 		assertEquals("bar", roundInfo.getPlayer());
-		assertNull(roundInfo.getText());
+		assertNull(roundInfo.getSentence());
 		assertEquals(1, roundInfo.getParticles().size());
 	}
 

@@ -6,14 +6,13 @@ public class GameRound {
 	private List<Particle> particles;
 	private final String player;
 
-	private String text;
+	private GameSentence sentence;
 	private RoundState state;
 
 	GameRound(String player, List<Particle> particles) {
 		this.player = player;
 		this.particles = particles;
 		state = RoundState.INITIAL;
-		text = null;
 	}
 
 	public List<Particle> getParticles() {
@@ -27,12 +26,12 @@ public class GameRound {
 		this.particles = particles;
 	}
 
-	public String getText() {
-		return text;
+	public GameSentence getSentence() {
+		return sentence;
 	}
 
-	void setText(String text) {
-		this.text = text;
+	public void setSentence(GameSentence sentence) {
+		this.sentence = sentence;
 	}
 
 	public String getPlayer() {

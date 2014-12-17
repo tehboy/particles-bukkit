@@ -2,7 +2,6 @@ package org.freehat.particles.game;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
 
 /**
  * This class is NOT thread-safe, and must be externally synchronized if called
@@ -77,23 +76,11 @@ public class ParticleGame {
 		if (!(round.getState() == RoundState.INITIAL)) {
 			return SentenceResult.WRONGTIME;
 		}
-		List<Particle> ps = round.getParticles();
-		int numParticles = ps.size();
-		final TreeMap<Integer, Particle> partLoc = new TreeMap<>();
-		for (int i = 0; i < numParticles; i++) {
-			Character c = Character.valueOf((char) (65 + i));
-			int indexOf = sentence.indexOf(c);
-			if (indexOf == -1) {
-				return SentenceResult.INVALID_SENTENCE;
-			}
-			partLoc.put(indexOf, ps.get(i));
+		GameSentence gs = GameSentence.create(sentence, round.getParticles());
+		round.setSentence(gs);
+		if (gs == null) {
+			return SentenceResult.INVALID_SENTENCE;
 		}
-		round.setParticles(new ArrayList<>(partLoc.values()));
-		StringBuilder b = new StringBuilder(sentence);
-		for (int loc : partLoc.descendingKeySet()) {
-			b.replace(loc, loc + 1, "XX");
-		}
-		round.setText(b.toString());
 		round.setState(RoundState.RUNNING);
 		return SentenceResult.SENTENCE_SET;
 	}
@@ -103,23 +90,8 @@ public class ParticleGame {
 				|| round.getState() == RoundState.INITIAL) {
 			return null;
 		}
-		GuessResult r = new GuessResult();
-		List<Particle> roundParticles = round.getParticles();
-		final int cnt = roundParticles.size();
-		int correct = 0, incorrect = 0;
-		for (int i = 0; i < particles.size() && i < cnt; i++) {
-			Particle guess = Particle.lookup(particles.get(i));
-			if (guess != null && guess.equals(roundParticles.get(i))) {
-				correct++;
-			} else {
-				incorrect++;
-			}
-		}
-		r.setCorrect(correct);
-		r.setIncorrect(incorrect);
-		final boolean success = incorrect == 0 && particles.size() == cnt;
-		r.setSuccess(success);
-		if (success) {
+		GuessResult r = round.getSentence().guess(particles);
+		if (r.isSuccess()) {
 			score++;
 			setupNextRound();
 		}
