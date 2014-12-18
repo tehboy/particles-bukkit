@@ -25,6 +25,7 @@ import org.freehat.particles.game.GameSentence.SentencePart;
 import org.freehat.particles.game.GuessResult;
 import org.freehat.particles.game.Particle;
 import org.freehat.particles.game.ParticleGame;
+import org.freehat.particles.game.ParticleLevel;
 import org.freehat.particles.game.SentenceResult;
 
 public class GameSessions {
@@ -52,11 +53,11 @@ public class GameSessions {
 		return session;
 	}
 
-	public GameSession initiate(UUID pid) {
+	public GameSession initiate(ParticleLevel level, UUID pid) {
 		if (getSession(pid) != null) {
 			return null;
 		}
-		GameSession session = new GameSession();
+		GameSession session = new GameSession(level);
 		sessions.add(session);
 		session.join(pid);
 		return session;
@@ -106,25 +107,26 @@ public class GameSessions {
 		private static final String SCORE = "Points";
 		private final Set<UUID> players = new HashSet<>();
 		private final Scoreboard board = manager.getNewScoreboard();
-
+		private final ParticleLevel level;
 		private final Objective objective = board.registerNewObjective(
 				hashCode() + "_score", "dummy");
 		private ParticleGame game;
 		private boolean gameOn;
 		private int gameLength = 20 * 60 * 5;
 
-		GameSession() {
+		GameSession(ParticleLevel level) {
 			objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 			setTimeString(gameLength / 20);
 			Score s = objective.getScore(SCORE);
 			s.setScore(0);
+			this.level = level;
 		}
 
 		void setTimeString(int timeLeft) {
 			ChatColor timeColor = timeLeft > 60 ? ChatColor.WHITE
 					: timeLeft > 30 ? ChatColor.YELLOW : ChatColor.RED;
-					objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
-							+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
+			objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
+					+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
 		}
 
 		public void pass(UUID pid) {
@@ -233,7 +235,7 @@ public class GameSessions {
 			} else {
 				players.remove(pid);
 				Bukkit.getPlayer(pid)
-				.setScoreboard(manager.getMainScoreboard());
+						.setScoreboard(manager.getMainScoreboard());
 			}
 		}
 
@@ -305,6 +307,7 @@ public class GameSessions {
 				for (UUID player : players) {
 					Player p = plugin.getPlayer(player);
 					builder.player(player.toString());
+					builder.level(level);
 					p.setScoreboard(board);
 					p.setMetadata(ParticlesPlugin.KEY, new FixedMetadataValue(
 							plugin, "foo"));

@@ -32,6 +32,7 @@ public class Util {
 						+ "/part sentence <sentence> - e.g. /part sentence 私A百円Bある. Not usually needed.\n"
 						+ "/part score - List high scores.\n"
 						+ "/part challenge <player> - Challenge another player.\n"
+						+ "/part hard <player> - Hard mode challenge (more particles).\n"
 						+ "/part accept - Accept said challenge. \n");
 	}
 

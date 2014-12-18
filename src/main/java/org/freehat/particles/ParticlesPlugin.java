@@ -15,6 +15,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.freehat.particles.GameSessions.GameSession;
+import org.freehat.particles.game.ParticleLevel;
 
 public class ParticlesPlugin extends JavaPlugin implements Listener {
 
@@ -58,11 +59,29 @@ public class ParticlesPlugin extends JavaPlugin implements Listener {
 				Util.send(player, "I think you're already playing.");
 			}
 			return;
+		case "hard":
+			if (args.length > 1) {
+				if (session == null) {
+					ParticleLevel level = ParticleLevel.BEGINNER;
+					session = sessions.initiate(level, pid);
+					for (int i = 1; i < args.length; i++) {
+
+						session.invite(args[i]);
+					}
+				} else {
+					Util.send(player, "I think you're already playing.");
+				}
+			} else {
+				Util.send(player, "Challenge whom?");
+			}
+			return;
 		case "challenge":
 			if (args.length > 1) {
 				if (session == null) {
-					session = sessions.initiate(pid);
+					ParticleLevel level = ParticleLevel.BEGINNER;
+					session = sessions.initiate(level, pid);
 					for (int i = 1; i < args.length; i++) {
+
 						session.invite(args[i]);
 					}
 				} else {
