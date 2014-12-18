@@ -27,12 +27,12 @@ public class Util {
 	public static void usage(Player player) {
 		send(player,
 				"The following commands are available:\n"
-						+ "/part challenge <player> - Challenge another player.\n"
-						+ "/part accept - Accept said challenge. \n"
+						+ "/part usage - Print usage\n"
+						+ "/part guess <particles> - e.g. /part guess は が. Not usually needed.\n"
+						+ "/part sentence <sentence> - e.g. /part sentence 私A百円Bある. Not usually needed.\n"
 						+ "/part score - List high scores.\n"
-						+ "/part guess <particles> - For example, /part guess は が, guesses that は and が are the two particles in the current sentence.  Usually you should be able to skip this and just type your guess straight into chat.\n"
-						+ "/part sentence <sentence> - Set the sentence when it is your turn.  For example, if your particles are A: に and B: が you could say /part sentence 私A百円Bある.  Again, this command is generally unnecessary.\n"
-						+ "/part usage - Print usage\n");
+						+ "/part challenge <player> - Challenge another player.\n"
+						+ "/part accept - Accept said challenge. \n");
 	}
 
 }

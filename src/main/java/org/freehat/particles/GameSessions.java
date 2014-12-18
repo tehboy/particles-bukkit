@@ -123,8 +123,8 @@ public class GameSessions {
 		void setTimeString(int timeLeft) {
 			ChatColor timeColor = timeLeft > 60 ? ChatColor.WHITE
 					: timeLeft > 30 ? ChatColor.YELLOW : ChatColor.RED;
-			objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
-					+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
+					objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
+							+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
 		}
 
 		public void pass(UUID pid) {
@@ -166,7 +166,7 @@ public class GameSessions {
 						b.append(ChatColor.WHITE + sp.text());
 					}
 				}
-				b.append("\nName the particles: ");
+				b.append("\n" + ChatColor.WHITE + "Name the particles: ");
 				for (int i = 0; i < particles.size(); i++) {
 					b.append(wheel[i % wheel.length] + "XX ");
 				}
@@ -200,7 +200,7 @@ public class GameSessions {
 			Player nextGuesser = plugin.getPlayer(info.getPlayer());
 			Util.send(
 					nextGuesser,
-					"It's your turn to name a sentence, set it by calling /part sentence <sentence>.  For example, if your particles are A: に and B: が you could type /part sentence 私A百円Bある");
+					"It's your turn to name a sentence, set it by typing a sentence into chat.  For example, if your particles are A: に and B: が you could type 私A百円Bある");
 			StringBuilder b = new StringBuilder("Your particles: \n");
 			char letter = 'A';
 			for (Particle p : info.getParticles()) {
@@ -233,7 +233,7 @@ public class GameSessions {
 			} else {
 				players.remove(pid);
 				Bukkit.getPlayer(pid)
-						.setScoreboard(manager.getMainScoreboard());
+				.setScoreboard(manager.getMainScoreboard());
 			}
 		}
 
