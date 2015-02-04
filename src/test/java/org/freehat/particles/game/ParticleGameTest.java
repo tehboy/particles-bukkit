@@ -30,7 +30,7 @@ public class ParticleGameTest {
 		assertEquals(RoundState.RUNNING, roundInfo.getState());
 		GuessResult guess = game.guess("bar", Arrays.asList(p.toString()));
 		assertTrue(guess.isSuccess());
-		assertEquals(0, game.getScore());
+		assertEquals(1, game.getScore());
 		roundInfo = game.getRoundInfo();
 		assertEquals(RoundState.INITIAL, roundInfo.getState());
 		assertEquals("bar", roundInfo.getPlayer());

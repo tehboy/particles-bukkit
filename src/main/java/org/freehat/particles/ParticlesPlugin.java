@@ -22,7 +22,7 @@ public class ParticlesPlugin extends JavaPlugin implements Listener {
 	public static final String KEY = "part";
 	public static final UUID AI = UUID.randomUUID();
 
-	private Player aiPlayer;
+	private UUID aiPlayer;
 
 	public Player getPlayer(String id) {
 		UUID pid = UUID.fromString(id);
@@ -31,14 +31,14 @@ public class ParticlesPlugin extends JavaPlugin implements Listener {
 
 	public Player getPlayer(UUID pid) {
 		if (AI.equals(pid)) {
-			return aiPlayer;
+			return Bukkit.getPlayer(aiPlayer);
 		} else {
 			return Bukkit.getPlayer(pid);
 		}
 	}
 
 	public ParticlesPlugin() {
-
+		// Do nothing
 	}
 
 	void handleCommand(Player player, String[] args) {
@@ -48,9 +48,10 @@ public class ParticlesPlugin extends JavaPlugin implements Listener {
 			args = Arrays.copyOfRange(args, 1, args.length);
 		}
 		GameSession session = sessions.getSession(pid);
+		ParticleLevel level = ParticleLevel.BEGINNER;
 		switch (args[0]) {
 		case "ai-reg":
-			aiPlayer = player;
+			aiPlayer = pid;
 			return;
 		case "accept":
 			if (session == null) {
@@ -60,30 +61,12 @@ public class ParticlesPlugin extends JavaPlugin implements Listener {
 			}
 			return;
 		case "hard":
-			if (args.length > 1) {
-				if (session == null) {
-					ParticleLevel level = ParticleLevel.BEGINNER;
-					session = sessions.initiate(level, pid);
-					for (int i = 1; i < args.length; i++) {
-
-						session.invite(args[i]);
-					}
-				} else {
-					Util.send(player, "I think you're already playing.");
-				}
-			} else {
-				Util.send(player, "Challenge whom?");
-			}
-			return;
+			level = ParticleLevel.ADVANCED;
 		case "challenge":
 			if (args.length > 1) {
 				if (session == null) {
-					ParticleLevel level = ParticleLevel.BEGINNER;
-					session = sessions.initiate(level, pid);
-					for (int i = 1; i < args.length; i++) {
-
-						session.invite(args[i]);
-					}
+					sessions.initiate(level, pid,
+							Arrays.copyOfRange(args, 1, args.length));
 				} else {
 					Util.send(player, "I think you're already playing.");
 				}
@@ -131,6 +114,17 @@ public class ParticlesPlugin extends JavaPlugin implements Listener {
 			return;
 		case "scores":
 			sessions.listHighScores(pid);
+			return;
+		case "sessions":
+			sessions.listSessions(pid);
+			return;
+		case "quit":
+			if (session != null) {
+				session.quit(pid);
+				Util.send(player, "Successfully quit.");
+			} else {
+				Util.send(player, "You're not in a game.");
+			}
 			return;
 		default:
 			Util.usage(player);

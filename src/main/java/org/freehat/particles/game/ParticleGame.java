@@ -57,7 +57,7 @@ public class ParticleGame {
 				.get((playerIds.indexOf(round.getPlayer()) + 1)
 						% playerIds.size());
 		round = new GameRound(nextPlayer, Particle.randomParticles(level,
-				getScore() + 1));
+				getScore() / playerIds.size() + 1));
 	}
 
 	public GameRound pass(String user) {
@@ -99,7 +99,7 @@ public class ParticleGame {
 	}
 
 	public int getScore() {
-		return score / playerIds.size();
+		return score;
 	}
 
 	public GameRound getRoundInfo() {

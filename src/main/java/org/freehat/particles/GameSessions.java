@@ -53,13 +53,28 @@ public class GameSessions {
 		return session;
 	}
 
-	public GameSession initiate(ParticleLevel level, UUID pid) {
-		if (getSession(pid) != null) {
+	public GameSession initiate(ParticleLevel level, UUID pid,
+			String... invites) {
+		if (invites == null || invites.length == 0 || getSession(pid) != null) {
 			return null;
 		}
 		GameSession session = new GameSession(level);
-		sessions.add(session);
 		session.join(pid);
+		List<Player> ps = new ArrayList<>(invites.length);
+		for (String p : invites) {
+			@SuppressWarnings("deprecation")
+			Player invitee = Bukkit.getPlayer(p);
+			if (invitee == null) {
+				Util.send(plugin.getPlayer(pid), "Could not find player " + p
+						+ ".");
+				return null;
+			}
+			ps.add(invitee);
+		}
+		for (Player p : ps) {
+			session.invite(p);
+		}
+		sessions.add(session);
 		return session;
 	}
 
@@ -125,8 +140,8 @@ public class GameSessions {
 		void setTimeString(int timeLeft) {
 			ChatColor timeColor = timeLeft > 60 ? ChatColor.WHITE
 					: timeLeft > 30 ? ChatColor.YELLOW : ChatColor.RED;
-			objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
-					+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
+					objective.setDisplayName(ChatColor.GOLD + "Time: " + timeColor
+							+ String.format("%d:%02d", timeLeft / 60, timeLeft % 60));
 		}
 
 		public void pass(UUID pid) {
@@ -180,8 +195,9 @@ public class GameSessions {
 		public void guess(UUID pid, List<String> particles) {
 			GuessResult guess = game.guess(pid.toString(), particles);
 			if (guess == null) {
-				Util.send(plugin.getPlayer(pid),
-						"You can't guess your own sentence.");
+				Util.send(
+						plugin.getPlayer(pid),
+						"Either a sentence has not been set this round, or you are trying to guess your own sentence.");
 				return;
 			}
 			if (guess.isSuccess()) {
@@ -216,17 +232,11 @@ public class GameSessions {
 			Util.send(nextGuesser, b.toString());
 		}
 
-		@SuppressWarnings("deprecation")
-		public boolean invite(String player) {
-			Player invitee = Bukkit.getPlayer(player);
-			if (invitee != null) {
-				Util.send(
-						invitee,
-						"You have been invited to play particle game.  Type '/part accept' to participate.");
-				invites.put(invitee.getUniqueId(), this);
-				return true;
-			}
-			return false;
+		public void invite(Player player) {
+			Util.send(
+					player,
+					"You have been invited to play particle game.  Type '/part accept' to participate.");
+			invites.put(player.getUniqueId(), this);
 		}
 
 		public void quit(UUID pid) {
@@ -234,37 +244,39 @@ public class GameSessions {
 				endGame();
 			} else {
 				players.remove(pid);
-				Bukkit.getPlayer(pid)
-						.setScoreboard(manager.getMainScoreboard());
+				plugin.getPlayer(pid)
+				.setScoreboard(manager.getMainScoreboard());
 			}
 		}
 
 		private void endGame() {
-			gameOn = false;
+			if (gameOn) {
+				gameOn = false;
 
-			sendMessage(String.format("Game over. Final Score: %d points.",
-					game.getScore()));
-			sessions.remove(this);
-			StringBuilder b = new StringBuilder();
-			for (UUID pid : players) {
-				Player p = plugin.getPlayer(pid);
-				if (p != null) {
-					if (b.length() > 0) {
-						b.append(", ");
+				sendMessage(String.format("Game over. Final Score: %d points.",
+						game.getScore()));
+				StringBuilder b = new StringBuilder();
+				for (UUID pid : players) {
+					Player p = plugin.getPlayer(pid);
+					if (p != null) {
+						if (b.length() > 0) {
+							b.append(", ");
+						}
+						b.append(p.getName());
+						p.setScoreboard(manager.getMainScoreboard());
+						p.removeMetadata(ParticlesPlugin.KEY, plugin);
 					}
-					b.append(p.getName());
-					p.setScoreboard(manager.getMainScoreboard());
-					p.removeMetadata(ParticlesPlugin.KEY, plugin);
+				}
+				highScores.add(new HighScore(b.toString(), game.getScore()));
+				Collections.sort(highScores);
+				if (highScores.size() == 6) {
+					highScores.remove(5);
+				}
+				for (UUID pid : players) {
+					listHighScores(pid);
 				}
 			}
-			highScores.add(new HighScore(b.toString(), game.getScore()));
-			Collections.sort(highScores);
-			if (highScores.size() == 6) {
-				highScores.remove(5);
-			}
-			for (UUID pid : players) {
-				listHighScores(pid);
-			}
+			sessions.remove(this);
 		}
 
 		public UUID getSentenceSetter() {
@@ -283,7 +295,6 @@ public class GameSessions {
 				p.setScoreboard(board);
 				p.setMetadata(ParticlesPlugin.KEY, new FixedMetadataValue(
 						plugin, "KEY"));
-
 			} else {
 				if (players.size() > 1) {
 					sendMessage("Game starting in 5 seconds.");
@@ -351,6 +362,23 @@ public class GameSessions {
 
 		}
 
+	}
+
+	public void listSessions(UUID pid) {
+		int i = 0;
+		Player p = plugin.getPlayer(pid);
+		for (GameSession s : sessions) {
+			Util.send(p, "Session " + i + ":");
+			for (UUID uuid : s.players) {
+				if (ParticlesPlugin.AI.equals(uuid)) {
+					Util.send(p, "\tAI: " + uuid);
+				} else {
+					Util.send(p, "\t" + Bukkit.getPlayer(uuid).getName() + ": "
+							+ uuid);
+				}
+			}
+			i++;
+		}
 	}
 
 }

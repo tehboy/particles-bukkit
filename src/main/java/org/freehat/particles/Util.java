@@ -33,7 +33,8 @@ public class Util {
 						+ "/part score - List high scores.\n"
 						+ "/part challenge <player> - Challenge another player.\n"
 						+ "/part hard <player> - Hard mode challenge (more particles).\n"
-						+ "/part accept - Accept said challenge. \n");
+						+ "/part accept - Accept said challenge. \n"
+						+ "/part quit - Quit game.");
 	}
 
 }
